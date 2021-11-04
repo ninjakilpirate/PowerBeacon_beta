@@ -1,0 +1,84 @@
+<head>                                                                                                                               
+<style>
+input[type=button], input[type=submit], input[type=reset] {
+  background-color: #a31f05;
+  border: none;
+  color: white;
+  padding: 4px 8px;
+  text-decoration: none;
+  margin: 2px 2px;
+  cursor: pointer;
+}
+table, th, td {
+    border: 1px solid white;
+    border-collapse: collapse;
+    padding: 10px;
+    color: white;
+    }
+a:link {
+  color: white;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:visited {
+  color: white;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:hover {
+  color: white;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+a:active {
+  color: white;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+</style>
+
+<body bgcolor=#302f2f font: color white;>
+<h1><font face="arial" color=white>PowerBeacon Dashboard</font></h1><hr>
+<a href="implants">| IMPLANTS | </a>
+<a href="tasks"> TASKS | </a>
+<a href="getData"> DATA | </a>                                                                              
+<hr>
+
+
+
+    <body>
+<font color=white>
+    {% if error %}  
+        <p><strong>Error</strong>: {{error}}</p>  
+    {% endif %}  
+
+    {% with messages = get_flashed_messages() %}  
+         {% if messages %}  
+               {% for message in messages %}  
+                    <p>{{ message }}</p>  
+               {% endfor %}  
+         {% endif %}  
+      {% endwith %}  
+
+
+<table border="1"><font color=white>
+<tr><th>ID<th>UUID<th>Time Delivered<th>Details</tr>
+    {% for data in dataDetails %}
+    <tr>
+        <td><font color=white>{{data[0]}}</td>
+        <td><font color=white>{{data[1]}}</td>
+        <td><font color=white>{{data[2]}}</td>
+        <td><font color=white>{{data[3]}}</td>
+        <td><form method="post" action="/getData">
+        <form><input type="hidden" name="ID" value={{data[0]}} required/>
+        <input type="submit" value="Get Results"></form></td>
+    </tr>
+    {% endfor %}
+
+
+
+</body>

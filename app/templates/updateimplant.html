@@ -1,0 +1,92 @@
+<head>                                                                                                                               
+<style>
+input[type=button], input[type=submit], input[type=reset] {
+  background-color: #a31f05;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+table, th, td {
+    border: 1px solid white;
+    border-collapse: collapse;
+    padding: 10px;
+    color: white;
+    }
+a:link {
+  color: white;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:visited {
+  color: white;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:hover {
+  color: white;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+a:active {
+  color: white;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+</style>
+
+<body bgcolor=#302f2f font: color white;>
+
+<h1><font face="arial" color=white>PowerBeacon Dashboard</font></h1><hr>
+<a href="implants">| IMPLANTS | </a>
+<a href="tasks"> TASKS | </a>
+<a href="getData"> DATA | </a>                                                                                   
+<hr>
+
+
+<font color=white>
+
+
+    {% if error %}  
+        <p><strong>Error</strong>: {{error}}</p>  
+    {% endif %}  
+
+    {% with messages = get_flashed_messages() %}  
+         {% if messages %}  
+               {% for message in messages %}  
+                    <p>{{ message }}</p>  
+               {% endfor %}  
+         {% endif %}  
+      {% endwith %}  
+
+
+<form method="post" action="/updateimplant">
+    <input type="text" name="UUID" placeholder="UUID" required/>
+    <input type="text" name="key" placeholder="key" required/>
+    <input type="text" name="ip" placeholder="IP" required/>
+    <input type="text" name="port" placeholder="Port" required/>
+    <input type="text" name="filter" placeholder="Filter" required/>
+    <input type="text" name="consumer" placeholder="Consumer" required/>
+    <input type="text" name="interval" placeholder="Beacon Interval" required/>
+    <input type="checkbox" name="ssl" value="ssl">
+    <label for="ssl">Use SSL?</label>
+
+    <input type="submit">
+</form>
+
+    {% if data %}
+    <p>Install:<br>
+    powershell -e {{data}}</p>
+    {% endif %}
+
+    {% if remove_data %}
+    <p>Uninstall:<br>
+    powershell -e {{remove_data}}</p>
+    {% endif %}
+</body>

@@ -1,0 +1,112 @@
+<head>                                                                                                                               <style>
+input[type=button], input[type=submit], input[type=reset] {
+  background-color: #a31f05;
+  border: none;
+  color: white;
+  padding: 16px 32px;
+  text-decoration: none;
+  margin: 1px 1px;
+  cursor: pointer;
+}
+table, th, td {
+    border: 1px solid white;
+    border-collapse: collapse;
+    padding: 5px;
+    color: white;
+    }   
+a:link {
+  color: white;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:visited {
+  color: white;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:hover {
+  color: white;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+a:active {
+  color: white;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+</style>
+
+<body bgcolor=#302f2f>                                                                                            
+
+<h1><font face="arial" color=white>PowerBeacon Dashboard</font></h1><hr>
+<a href="implants">| IMPLANTS | </a>
+<a href="tasks"> TASKS | </a>
+<a href="getData"> DATA | </a>
+<hr>
+<font color=white>
+    {% if error %}  
+        <p><strong>Error</strong>: {{error}}</p>  
+    {% endif %}  
+
+    {% with messages = get_flashed_messages() %}  
+         {% if messages %}  
+               {% for message in messages %}  
+                    <p>{{ message }}</p>  
+               {% endfor %}  
+         {% endif %}  
+      {% endwith %}  
+
+
+<form method="post" action="/surveyGen">
+    <input type="text" name="UUID" placeholder="UUID" required/>
+    <input type="text" name="LP" placeholder="IP" required/>
+    <input type="text" name="port" placeholder="PORT" required/>
+    <input type="text" name="notes" placeholder="Description" required/>
+    <br>
+    <br>
+    <input type="checkbox" name="systeminfo" value="systeminfo" checked/>
+    <label for="ps">System Info</label></br>
+
+    <input type="checkbox" name="ps" value="ps" checked/>
+    <label for="ps">Process List</label></br>
+
+    <input type="checkbox" name="netstat" value="netstat" checked/>
+    <label for="dir">Netstat</label></br>
+    
+    <input type="checkbox" name="svc" value="svc" checked/>
+    <label for="svc">Service List</label></br>
+    
+    <input type="checkbox" name="dir_c" value="dir_c" checked/>
+    <label for="dir_c">dir c:\</label></br>
+    
+    <input type="checkbox" name="dir_windows" value="dir_windows" checked/>
+    <label for="dir">dir c:\windows</label></br>
+
+    <input type="checkbox" name="dir_system32" value="dir_system32" checked/>
+    <label for="dir">dir c:\windows\system32</label></br>
+
+    <input type="checkbox" name="dir_programfiles" value="dir_programfiles" checked/>
+    <label for="dir">dir c:\program\files</label></br>
+
+    <input type="checkbox" name="dir_x86" value="dir_x86" checked/>
+    <label for="dir">dir c:\program\files(x86)<label></br>
+
+    <input type="checkbox" name="netsh" value="netsh"/>
+    <label for="dir">Netsh Portproxy<label></br>
+
+    <input type="checkbox" name="firewall" value="firewall"/>
+    <label for="dir">Firewall Profiles<label></br>
+
+
+
+
+<br>    <input type="submit" value="Add Task">
+        <input type="checkbox" value="ssl" name="ssl">
+        <label for="ssl">Use SSL?</label>
+</form>
+
+</body>

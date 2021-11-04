@@ -1,0 +1,90 @@
+<head>                                                                                                                               <style>
+input[type=button], input[type=submit], input[type=reset] {
+  background-color: #a31f05;
+  border: none;
+  color: white;
+  padding: 16px 32px;
+  text-decoration: none;
+  margin: 1px 1px;
+  cursor: pointer;
+}
+table, th, td {
+    border: 1px solid white;
+    border-collapse: collapse;
+    padding: 5px;
+    color: white;
+    }   
+a:link {
+  color: white;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:visited {
+  color: white;
+  background-color: transparent;
+  text-decoration: none;
+}
+
+a:hover {
+  color: white;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+a:active {
+  color: white;
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+</style>
+
+<body bgcolor=#302f2f>                                                                                            
+
+<h1><font face="arial" color=white>PowerBeacon Dashboard</font></h1><hr>
+<a href="implants">| IMPLANTS | </a>
+<a href="tasks"> TASKS | </a>
+<a href="getData"> DATA | </a>
+<hr>
+<font color=white>
+    {% if error %}  
+        <p><strong>Error</strong>: {{error}}</p>  
+    {% endif %}  
+
+    {% with messages = get_flashed_messages() %}  
+         {% if messages %}  
+               {% for message in messages %}  
+                    <p>{{ message }}</p>  
+               {% endfor %}  
+         {% endif %}  
+      {% endwith %}  
+
+
+<form method="post" action="/tasks">
+    <input type="text" name="UUID" placeholder="UUID" required/>
+    <input type="text" name="task" placeholder="Task to run" required/>
+    <input type="text" name="notes" placeholder="Description" required/>
+    <input type="submit" value="Add Task">
+</form>
+
+<form style="display:inline-block;" method="get" action="/tasks">
+    <input type="submit" value="Refresh">
+</form>
+
+<form style="display:inline-block;" method="get" action="/showCompleted">
+    <input type="submit" value="Show Completed">
+</form>
+<table border="1"><font color=white>
+
+    <tr><th>ID<th>UUID<th>Description<th>Time Completed</tr>
+    {% for task in taskDetails %}
+    <tr>
+        <td><font color=white>{{task[0]}}</td>
+        <td><font color=white>{{task[1]}}</td>
+        <td><font color=white>{{task[2]}}</td>
+        <td><font color=white>{{task[3]}}</td>
+    </tr>
+    {% endfor %}
+</table></font>
+</body>
