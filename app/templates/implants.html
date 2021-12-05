@@ -74,16 +74,17 @@ a:active {
     <input type="submit" value="Generate Install">
 </form>
 </p>
+
 <br><table border="1">
-    <tr><th>UUID<th>KEY<th>Last Check In</tr>
+    <tr><th>UUID<th>Last Checkin<th>Gateway</tr>
     {% for implant in implantDetails %}
     <tr>
         <td>{{implant[0]}}</td>
         <td>{{implant[1]}}</td>
-        <td>{{implant[2]}}</td>
+        <td align=right>{{implant[2]}}</td>
         <td><form method="post" action="/implants">
         <form><input type="hidden" name="UUID" value={{implant[0]}} required/>
-        <input type="submit" value="Check-Ins"></form></td>
+        <input type="submit" value="Details"></form></td>
     </tr>
     {% endfor %}
 
