@@ -16,32 +16,6 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `allcheckins`
---
-
-DROP TABLE IF EXISTS `allcheckins`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `allcheckins` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `UUID` varchar(50) DEFAULT NULL,
-  `calltime` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `UUID` (`UUID`),
-  CONSTRAINT `allcheckins_ibfk_1` FOREIGN KEY (`UUID`) REFERENCES `implants` (`UUID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `allcheckins`
---
-
-LOCK TABLES `allcheckins` WRITE;
-/*!40000 ALTER TABLE `allcheckins` DISABLE KEYS */;
-/*!40000 ALTER TABLE `allcheckins` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `checkins`
 --
 
@@ -51,11 +25,12 @@ DROP TABLE IF EXISTS `checkins`;
 CREATE TABLE `checkins` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `UUID` varchar(50) DEFAULT NULL,
+  `gateway` varchar(30) DEFAULT NULL,
   `last_checkin` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `UUID` (`UUID`),
   CONSTRAINT `checkins_ibfk_1` FOREIGN KEY (`UUID`) REFERENCES `implants` (`UUID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -64,6 +39,7 @@ CREATE TABLE `checkins` (
 
 LOCK TABLES `checkins` WRITE;
 /*!40000 ALTER TABLE `checkins` DISABLE KEYS */;
+INSERT INTO `checkins` VALUES (61,'TEST','1.2.3.4','2021-12-05 03:46:32'),(62,'TEST','1.2.3.4','2021-12-05 03:46:33'),(63,'TEST','1.2.3.4','2021-12-05 03:46:34'),(64,'TEST','1.2.3.4','2021-12-05 03:46:35'),(65,'TEST','5.6.7.8','2021-12-05 03:46:41'),(66,'TEST2','9.8.6.5','2021-12-05 03:47:13'),(67,'TEST','192.168.21.1','2021-12-05 04:12:45'),(68,'TEST','192.168.21.1','2021-12-05 04:13:00'),(69,'TEST2','192.168.21.1','2021-12-05 04:13:15'),(70,'TEST2','192.168.21.1','2021-12-05 04:13:30');
 /*!40000 ALTER TABLE `checkins` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -116,6 +92,7 @@ CREATE TABLE `implants` (
 
 LOCK TABLES `implants` WRITE;
 /*!40000 ALTER TABLE `implants` DISABLE KEYS */;
+INSERT INTO `implants` VALUES ('TEST','12345','none'),('TEST2','12345','none');
 /*!40000 ALTER TABLE `implants` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -158,4 +135,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-10-30 23:41:45
+-- Dump completed on 2021-12-05  4:35:29

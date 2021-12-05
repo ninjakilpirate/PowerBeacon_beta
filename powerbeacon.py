@@ -10,6 +10,8 @@ import sys
 import os
 from datetime import datetime
 import base64
+import argparse
+import ssl
 
 should_get=False             #controls whether thge server is active
 stop_threads=False           #stop the thread resetting should_get
@@ -118,8 +120,8 @@ class HandleRequests(BaseHTTPRequestHandler):
         results=cursor.fetchall()
         if (len(results) > 0):
             if (request=="req"):##only is requests
-                cursor.execute("update checkins set last_checkin=now() where UUID='" + UUID +"'")
-                cursor.execute("INSERT INTO allcheckins (UUID) VALUES ('" + UUID +"')")
+#                cursor.execute("update checkins set last_checkin=now() where UUID='" + UUID +"'")
+                cursor.execute("INSERT INTO checkins (UUID,gateway) VALUES ('" + UUID +"','" + IP + "')")
                 cursor.execute("commit")
                 should_get = True
                 query = "select task from tasks where UUID='" + UUID +"' and is_complete = 0"  #check for tasks...we should only do this is it's a request.  fix this later
@@ -184,13 +186,33 @@ class HandleRequests(BaseHTTPRequestHandler):
         self.do_POST()
 
 
-host = ''
-port = 80
-print("[+]Starting POWERBEACON Server")
+parser = argparse.ArgumentParser()
+parser.add_argument('-p', type=int, required=True)
+parser.add_argument('-b', type=str, required=False)
+parser.add_argument('--ssl',type=str, required=False)
+args = parser.parse_args()
+
+if args.b:
+    host = args.b
+else:
+    host = ''
+port = args.p
+
 reset=threading.Thread(target=unset_should_get, args=())
 reset.start()
-try:
-    HTTPServer((host, port),HandleRequests).serve_forever()
-except KeyboardInterrupt:
-    print("\n[*]Shutting down server")
-    stop_threads=True
+if args.ssl=="true":
+    try:
+        ssl_server=HTTPServer((host, port), HandleRequests)
+        ssl_server.socket = ssl.wrap_socket (ssl_server.socket, keyfile="/tmp/key.pem",certfile="/tmp/cert.pem", server_side=True)  #wrap with ssl
+        print("[+]Starting POWERBEACON Server using SSL on port "+ str(port))
+        ssl_server.serve_forever()
+    except KeyboardInterrupt:
+        print("\n[*]Shutting down server")
+        stop_threads=True
+else:
+    try:
+        print("[+]Starting POWERBEACON Server on port "+ str(port))
+        HTTPServer((host, port),HandleRequests).serve_forever()
+    except KeyboardInterrupt:
+        print("\n[*]Shutting down server")
+        stop_threads=True
