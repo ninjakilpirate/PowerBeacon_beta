@@ -37,7 +37,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
-    def do_GET(self):
+    def do_GET(self):   #Get Function
         purple="\033[35m"
         default="\033[39m"
         red="\033[31m"
@@ -47,23 +47,23 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         path=os.getcwd()
         req = self.path
-        self.path=path + "/web_serve/"+self.path
+        self.path=path + "/web_serve/"+self.path  #path to serve from
         IP=self.client_address[0]
         try:
             global should_get
             if should_get:
                 self._set_headers()
                 with open(self.path, 'rb') as f:
-                    data = f.read()
+                    data = f.read()  #read file
                     f.close()
                 self.wfile.write(data)
-                print(green+"[+]WEB_RESPONSE:::IP="+IP+":::File="+req+":::[200 OK]"+default)
+                print(green+"[+]WEB_RESPONSE:::IP="+IP+":::File="+req+":::[200 OK]"+default)  #write to console that it was read
         except:
-            with open(path+"/web_serve/404.html", 'rb') as f:
+            with open(path+"/web_serve/404.html", 'rb') as f:  #otherwise return a 404
                 data = f.read()
                 f.close()
             self.wfile.write(data)
-            print(yellow+"[!]WEB_RESPONSE:::IP="+IP+":::File="+req+":::[400 NOT FOUND]"+default)
+            print(yellow+"[!]WEB_RESPONSE:::IP="+IP+":::File="+req+":::[400 NOT FOUND]"+default)  #and log the 404 to console
 
     def do_POST(self):
         global should_get
@@ -185,34 +185,36 @@ class HandleRequests(BaseHTTPRequestHandler):
     def do_PUT(self):
         self.do_POST()
 
+if __name__ == "__main__":
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-p', type=int, required=True)
-parser.add_argument('-b', type=str, required=False)
-parser.add_argument('--ssl',type=str, required=False)
-args = parser.parse_args()
-
-if args.b:
-    host = args.b
-else:
-    host = ''
-port = args.p
-
-reset=threading.Thread(target=unset_should_get, args=())
-reset.start()
-if args.ssl=="true":
-    try:
-        ssl_server=HTTPServer((host, port), HandleRequests)
-        ssl_server.socket = ssl.wrap_socket (ssl_server.socket, keyfile="/tmp/key.pem",certfile="/tmp/cert.pem", server_side=True)  #wrap with ssl
-        print("[+]Starting POWERBEACON Server using SSL on port "+ str(port))
-        ssl_server.serve_forever()
-    except KeyboardInterrupt:
-        print("\n[*]Shutting down server")
-        stop_threads=True
-else:
-    try:
-        print("[+]Starting POWERBEACON Server on port "+ str(port))
-        HTTPServer((host, port),HandleRequests).serve_forever()
-    except KeyboardInterrupt:
-        print("\n[*]Shutting down server")
-        stop_threads=True
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', type=int, required=True)
+    parser.add_argument('-b', type=str, required=False)
+    parser.add_argument('--ssl',type=str, required=False)
+    args = parser.parse_args()
+    
+    if args.b:
+        host = args.b
+    else:
+        host = ''
+    port = args.p
+    
+    reset=threading.Thread(target=unset_should_get, args=())
+    reset.start()
+    if args.ssl=="true":
+        try:
+            ssl_server=HTTPServer((host, port), HandleRequests)
+            ssl_server.socket = ssl.wrap_socket (ssl_server.socket, keyfile="/tmp/key.pem",certfile="/tmp/cert.pem", server_side=True)  #wrap with ssl
+            print("[+]Starting POWERBEACON Server using SSL on port "+ str(port))
+            ssl_server.serve_forever()
+        except KeyboardInterrupt:
+            print("\n[*]Shutting down server")
+            stop_threads=True
+    else:
+        try:
+            print("[+]Starting POWERBEACON Server on port "+ str(port))
+            HTTPServer((host, port),HandleRequests).serve_forever()
+        except KeyboardInterrupt:
+            print("\n[*]Shutting down server")
+            stop_threads=True
+    
