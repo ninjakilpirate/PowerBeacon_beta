@@ -1,0 +1,6 @@
+mysql -u root -p
+CREATE DATABASE powerbeacon;
+
+mysql -u root -p powerbeacon < powerbeacon.sql
+
+

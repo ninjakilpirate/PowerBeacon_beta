@@ -4,7 +4,7 @@ input[type=button], input[type=submit], input[type=reset] {
   background-color: #a31f05;
   border: none;
   color: white;
-  padding: 16px 32px;
+  padding: 8px 16px;
   text-decoration: none;
   margin: 4px 2px;
   cursor: pointer;
@@ -74,10 +74,23 @@ a:active {
     <input type="submit" value="Generate Install">
 </form>
 </p>
-{{singleImplant[0]}}
-{{singleImplant[1]}}
-{{singleImplant[2]}}
-<br><table border="1">
+
+
+
+
+<form method="post" action="/updatenotes">
+    <input type="text" id="notes" name="notes" placeholder="Update Notes...?" required/></textarea>
+    <input type="submit" value="Update Notes">
+    <input type="text" name="UUID" id="UUID" value="{{ singleImplant[0][0] }}" style="visibility:hidden">
+</form>
+
+<form method="post" action="/deleteImplant">
+    <input type="text" id="UUID1" name="UUID1" placeholder="Enter UUID to delete implant." required/></textarea>
+    <input type="submit" value="Delete Implant">
+    <input type="text" name="UUID2" id="UUID2" value="{{ singleImplant[0][0] }}" style="visibility:hidden">
+</form>
+
+<br><br><table border="1">
     <tr><th>UUID<th>Check In<th>Gateway</tr>
     {% for implant in implantDetails %}
     <tr>

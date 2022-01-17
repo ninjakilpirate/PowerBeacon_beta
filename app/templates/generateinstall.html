@@ -13,6 +13,7 @@ table, th, td {
     border: 1px solid white;
     border-collapse: collapse;
     padding: 10px;
+   
     color: white;
     }
 a:link {
@@ -66,15 +67,23 @@ a:active {
       {% endwith %}  
 
 
-<form method="post" action="/updateimplant">
+<form method="post" action="/generateinstall">
     <input type="text" name="UUID" placeholder="UUID" required/>
     <input type="text" name="key" placeholder="key" required/>
-    <input type="text" name="ip" placeholder="IP" required/>
+    <input type="text" name="ip" placeholder="C2 IP" required/><br><br>
     <input type="text" name="port" placeholder="Port" required/>
     <input type="text" name="filter" placeholder="Filter" required/>
-    <input type="text" name="consumer" placeholder="Consumer" required/>
-    <input type="text" name="interval" placeholder="Beacon Interval" required/>
-    <input type="checkbox" name="ssl" value="ssl">
+    <input type="text" name="consumer" placeholder="Consumer" required/><br><br>
+    <label for="interval">Beacon Interval</label>
+    <select name="interval" id="interval" required/>
+        <option value="5">4 hours</option>
+        <option value="4">1 Hour</option>
+        <option value="3">30 Minutes</option>
+        <option value="2">15 Minutes</option>
+        <option value="1">1 minute</option>
+        <option value="0">15 Seconds</option>
+    </select>
+<input type="checkbox" name="ssl" value="ssl">
     <label for="ssl">Use SSL?</label>
 
     <input type="submit">
