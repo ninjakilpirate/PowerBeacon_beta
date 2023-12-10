@@ -16,6 +16,15 @@ import ssl
 should_get=False             #controls whether thge server is active
 stop_threads=False           #stop the thread resetting should_get
 
+#Configure database connection
+#hostname = 'localhost'
+#username = 'root'
+#password = 't00r'
+#database = 'powerbeacon'
+#connection = MySQLdb.connect( host=hostname, user=username, passwd=password, db=database )
+
+
+
 #####controls whether GET will be answered.  Is OFF except for 5 seconds after auth
 def unset_should_get():
     global should_get
@@ -94,7 +103,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             return 0
 
         #Pull vars from dict
-        connection=MySQLdb.connect(host='127.0.0.1',user='root',password='toor',database="powerbeacon")
+        connection=MySQLdb.connect(host='127.0.0.1',user='root',password='t00r',database="powerbeacon")
         try:
             UUID=new_obj["UUID"]
             key=new_obj["key"]
@@ -140,8 +149,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                     ##and update the tasks so they are marked complete in the DB
                     query = "update tasks set is_complete = 1 where UUID = '" + UUID + "'"
                     cursor.execute(query)
-                    query="commit"
-                    cursor.execute(query)
+                    connection.commit()
                     connection.close()
                     return 0
                 

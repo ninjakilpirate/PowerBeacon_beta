@@ -1,18 +1,23 @@
 #!/usr/bin/python3
 
 from flask import Flask,render_template,request, redirect,url_for,flash
-from flask_mysqldb import MySQL
 import time
 from base64 import b64encode
+import MySQLdb
+
 
 app = Flask(__name__)
+app.secret_key = "1234"
 
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'toor'
-app.config['MYSQL_DB'] = 'powerbeacon'
-app.secret_key = "123"
-mysql = MySQL(app)
+
+#Configure database connection
+hostname = 'localhost'
+username = 'root'
+password = 't00r'
+database = 'powerbeacon'
+myConnection = MySQLdb.connect( host=hostname, user=username, passwd=password, db=database )
+
+
 
 
 @app.route('/',methods=['GET','POST'])
@@ -61,7 +66,7 @@ def surveyGen():
         if "firewall_rules" in request.form:     #this returns to many resuts for the return and isn't implemented below
             firewall_rules=True
         
-        cur = mysql.connection.cursor()
+        cur = myConnection.cursor()
         get_key=cur.execute("SELECT implantkey from implants where (UUID='" + UUID + "')")
         get_key = cur.fetchall()
         if len(get_key) < 1:
@@ -108,9 +113,9 @@ def surveyGen():
 
         encodedtask = b64encode(task.encode('UTF-16LE')).decode('UTF-8')
         encodedtask = "powershell -e " + encodedtask
-        cur = mysql.connection.cursor()
+        cur = myConnection.cursor()
         cur.execute("INSERT INTO tasks (UUID,task,notes) VALUES (%s,%s,%s)",(UUID,encodedtask,notes))
-        mysql.connection.commit()
+        myConnection.commit()
         cur.close()
         flash('Task added')
         return redirect(url_for('tasks')) 
@@ -120,13 +125,14 @@ def surveyGen():
 def showCompleted():
     error = None
     try:
-        cur = mysql.connection.cursor()
+        cur = myConnection.cursor()
         tasks = cur.execute("SELECT id,UUID,notes,time_complete FROM tasks where (is_complete=1) order by id desc")
         taskDetails = cur.fetchall()
         return render_template('completedtasks.html',taskDetails=taskDetails,error=error)
     except:
         error="An unknown error occured"
         return render_template('implants.html',error=error)
+    myConnection.close()
 
 @app.route('/deleteTask',methods=['GET','POST'])
 def deleteTask():
@@ -134,30 +140,30 @@ def deleteTask():
     if request.method=="POST":
         try:
             id=request.form['ID']
-            cur = mysql.connection.cursor()
+            cur = myConnection.cursor()
             cur.execute("delete from tasks where (id="+id+")")
-            mysql.connection.commit()
-            cur.close()
+            myConnection.commit()
             flash('Task Deleted')
             return redirect(url_for('tasks'))
         except:
             error = "An error has occured.  Possible duplicated UUID"
             return redirect(url_for('tasks'))
     return redirect(url_for('tasks'))
+    myConnection.close()
 
 @app.route('/getData',methods=['GET','POST'])
 def getData():
     error = None
     if request.method == 'POST':
         id=request.form['ID']
-        cur = mysql.connection.cursor()
+        cur = myConnection.cursor()
         cur.execute("SELECT data from datastore where (id="+id+")")
         dataDetails=cur.fetchall()
-        #print(results[0])
         cur.close()
+        #print(results[0])
         return render_template('getData.html',error=error,dataDetails=dataDetails)
 
-    cur = mysql.connection.cursor()
+    cur = myConnection.cursor()
     cur.execute("SELECT id,UUID,delivered,details from datastore order by delivered desc limit 100")
     dataDetails=cur.fetchall()
     cur.close()
@@ -170,14 +176,14 @@ def updatenotes():
         UUID = request.form['UUID']
         notes = request.form['notes']
         try:
-           cur = mysql.connection.cursor()
+           cur = myConnection.cursor()
            cur.execute("update implants set notes='"+ notes + "' where (UUID='" + UUID + "')")
-           mysql.connection.commit()
+           myConnection.commit()
            flash("Notes Updated")
            return redirect(url_for('implants'))
         except:
             return redirect(url_for('implants'))
-
+    myConnection.close()
 @app.route('/deleteImplant', methods=['POST'])
 def deleteImplant():
     error = None
@@ -185,16 +191,16 @@ def deleteImplant():
         UUID1 = request.form['UUID1']
         UUID2 = request.form['UUID2']
         if UUID2==UUID1:
-            cur = mysql.connection.cursor()
+            cur = myConnection.cursor()
             cur.execute("delete from implants where UUID='" + UUID1 + "'")
-            mysql.connection.commit()
+            myConnection.commit()
             flash("Implant " + UUID1 + " deleted from database")
             return redirect(url_for('implants'))
         else:
             flash("UUID does not match.")
             flash("Implant not deleted.")
             return redirect(url_for('implants'))
-
+    myConnection.close()
 @app.route('/tasks',methods=['GET','POST'])
 def tasks():
     error = None
@@ -204,38 +210,37 @@ def tasks():
         notes = request.form['notes']
 
         try:
-            cur = mysql.connection.cursor()
+            cur = myConnection.cursor()
             cur.execute("INSERT INTO tasks (UUID,task,notes) VALUES (%s,%s,%s)",(UUID,task,notes))
-            mysql.connection.commit()
+            myConnection.commit()
             cur.close()
             flash('Task added')
             return redirect(url_for('tasks')) 
         except:
             error = "UUID NOT FOUND" 
-    cur = mysql.connection.cursor()
+    cur = myConnection.cursor()
+    myConnection.commit()
     tasks = cur.execute("SELECT id,UUID,notes FROM tasks where is_complete = 0")
-
     taskDetails = cur.fetchall()
-    return render_template('tasks.html',taskDetails=taskDetails,error=error)
     cur.close()
+    return render_template('tasks.html',taskDetails=taskDetails,error=error)
 
 @app.route('/implants',methods=['GET','POST'])
 def implants():
     error=None
     if  request.method == 'POST':
-        cur = mysql.connection.cursor()
+        cur = myConnection.cursor()
         UUID = request.form['UUID']
         singleImplant = cur.execute("select * from implants where UUID='" + UUID +"'")
         singleImplant = cur.fetchall()
         implants = cur.execute("select * from checkins where UUID='" + UUID + "' order by last_checkin desc limit 100")
         implantDetails = cur.fetchall()
         return render_template('singleimplant.html',implantDetails=implantDetails,singleImplant=singleImplant,error=error)
-
-    cur = mysql.connection.cursor()
-#    implants = cur.execute("select t.UUID, t.last_checkin, t.gateway,t.id from checkins as t Inner join ( select UUID, max(last_checkin) as MaxDate from checkins group by UUID ) tm on t.UUID = tm.UUID and t.last_checkin = tm.MaxDate;")    ##this will grab implants, latest gateway, and latest checking  I dno't think I want this, but i'm leaving it in case
+    cur = myConnection.cursor()
     implants = cur.execute("select * from implants")
     implantDetails = cur.fetchall()
     return render_template('implants.html',implantDetails=implantDetails,error=error)
+    myConnection.close()
 
 @app.route('/addimplant',methods=['GET','POST'])
 def addimplant():
@@ -246,20 +251,21 @@ def addimplant():
             UUID = request.form['UUID']  #getvariables
             key = request.form['key']
             notes = request.form['notes']
-
-            cur = mysql.connection.cursor()#add to the database
+            import traceback
+            cur = myConnection.cursor()#add to the database
             cur.execute("INSERT INTO implants (UUID,implantkey,notes) VALUES (%s,%s,%s)",(UUID,key,notes))
             cur.execute("INSERT INTO checkins (UUID) VALUES ('" + UUID + "')")
             cur.execute("update checkins set last_checkin='1990-01-01 00:00:00' where (UUID='" + UUID + "')")
-            mysql.connection.commit()
-            cur.close()
+            myConnection.commit()
             flash('Implant Added')   #It's been added
+            cur.close()
             return redirect(url_for('implants'))
         except:
             error = "An error has occured.  Possible duplicated UUID"
             return render_template('addimplant.html',error=error)
 
     return render_template('addimplant.html',error=error)
+    myConnection.close()
 
 @app.route('/generateinstall',methods=['GET','POST'])
 def generateinstall():
